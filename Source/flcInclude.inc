@@ -1335,7 +1335,7 @@
       {$DEFINE FREEPASCAL3_0_UP}
       {$DEFINE FREEPASCAL3_1_UP}
     {$ENDIF}
-    {$IFDEF VER3_2}
+//    {$IFDEF VER3_2}
       {$DEFINE FREEPASCAL3}
       {$DEFINE FREEPASCAL3_UP}
       {$DEFINE FREEPASCAL3_2}
@@ -1344,7 +1344,7 @@
       {$DEFINE FREEPASCAL3_0_UP}
       {$DEFINE FREEPASCAL3_1_UP}
       {$DEFINE FREEPASCAL3_2_UP}
-    {$ENDIF}
+//    {$ENDIF}
   {$ENDIF}
 
 {$ENDIF}
@@ -1389,6 +1389,7 @@
   {$DEFINE SupportOverload}
   {$DEFINE SupportUTF8String}
   {$DEFINE SupportUCS4String}
+  {$DEFINE TBytesDeclared}
   {$IFDEF FREEPASCAL2_6_UP}
     {$DEFINE SetSizeAlignIsByte}
   {$ELSE}

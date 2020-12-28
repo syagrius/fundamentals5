@@ -68,6 +68,10 @@
   {$HINTS OFF}
 {$ENDIF}
 
+{$IFNDEF SupportUnicodeString}
+  !!! THIS UNIT REQUIRES UNICODE SUPPORT (DELPHI >=2007) !!!
+{$ENDIF}
+
 unit flcJSON;
 
 interface
@@ -516,6 +520,7 @@ function  GetSchemaSchemaObj: TJSONObject;
 procedure ValidateSchema(const Schema: TJSONObject);
 
 
+function  EscapedJSONStringValue(const S: UnicodeString): UnicodeString;
 
 {                                                                              }
 { Self-testing code                                                            }

@@ -486,7 +486,7 @@ type
 {                                                                              }
 {$IFNDEF TBytesDeclared}
 type
-  TBytes = array of Bytes;
+  TBytes = array of Byte;
 {$ENDIF}
 
 

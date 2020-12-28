@@ -799,13 +799,13 @@ function  TryStringToInt64B(const S: RawByteString; out A: Int64): Boolean;
 function  TryStringToInt64U(const S: UnicodeString; out A: Int64): Boolean;
 function  TryStringToInt64(const S: String; out A: Int64): Boolean;
 
+{$IFNDEF DELPHI7}
 {$IFDEF SupportAnsiString}
 function  TryStringToUInt64A(const S: AnsiString; out A: UInt64): Boolean;
 {$ENDIF}
 function  TryStringToUInt64B(const S: RawByteString; out A: UInt64): Boolean;
 function  TryStringToUInt64U(const S: UnicodeString; out A: UInt64): Boolean;
 function  TryStringToUInt64(const S: String; out A: UInt64): Boolean;
-
 {$IFDEF SupportAnsiString}
 function  StringToInt64DefA(const S: AnsiString; const Default: Int64): Int64;
 {$ENDIF}
@@ -833,6 +833,7 @@ function  StringToUInt64A(const S: AnsiString): UInt64;
 function  StringToUInt64B(const S: RawByteString): UInt64;
 function  StringToUInt64U(const S: UnicodeString): UInt64;
 function  StringToUInt64(const S: String): UInt64;
+{$ENDIF ~DELPHI7}
 
 {$IFDEF SupportAnsiString}
 function  TryStringToIntA(const S: AnsiString; out A: Integer): Boolean;
@@ -3945,7 +3946,7 @@ begin
   {$IFDEF CharIsWide}
   Result := WideCharDigitToInt(A);
   {$ELSE}
-  Result := ByteCharToInt(A);
+  Result := ByteCharDigitToInt(A);
   {$ENDIF}
 end;
 
@@ -3970,7 +3971,7 @@ begin
   {$IFDEF CharIsWide}
   Result := IntToWideCharDigit(A);
   {$ELSE}
-  Result := IntToByteChar(A);
+  Result := IntToByteCharDigit(A);
   {$ENDIF}
 end;
 
@@ -3992,7 +3993,7 @@ begin
   {$IFDEF CharIsWide}
   Result := IsHexWideCharDigit(Ch);
   {$ELSE}
-  Result := IsHexByteChar(Ch);
+  Result := IsHexByteCharDigit(Ch);
   {$ENDIF}
 end;
 
@@ -4026,7 +4027,7 @@ begin
   {$IFDEF CharIsWide}
   Result := HexWideCharDigitToInt(A);
   {$ELSE}
-  Result := HexByteCharToInt(A);
+  Result := HexByteCharDigitToInt(A);
   {$ENDIF}
 end;
 
@@ -4057,7 +4058,7 @@ begin
   {$IFDEF CharIsWide}
   Result := IntToUpperHexWideCharDigit(A);
   {$ELSE}
-  Result := IntToUpperHexByteChar(A);
+  Result := IntToUpperHexByteCharDigit(A);
   {$ENDIF}
 end;
 
@@ -4088,7 +4089,7 @@ begin
   {$IFDEF CharIsWide}
   Result := IntToLowerHexWideCharDigit(A);
   {$ELSE}
-  Result := IntToLowerHexByteChar(A);
+  Result := IntToLowerHexByteCharDigit(A);
   {$ENDIF}
 end;
 
@@ -4590,6 +4591,7 @@ begin
   Result := UIntToBase(A, Digits, 2);
 end;
 
+{$IFNDEF DELPHI7}
 {$IFOPT Q+}{$DEFINE QOn}{$Q-}{$ELSE}{$UNDEF QOn}{$ENDIF} // Delphi 7 incorrectly overflowing for -922337203685477580 * 10
 function TryStringToUInt64PB(const BufP: Pointer; const BufLen: Integer; out Value: UInt64; out StrLen: Integer): TConvertResult;
 var
@@ -4741,7 +4743,7 @@ begin
   Result := TryStringToUInt64PB(BufP, BufLen, Value, StrLen);
   {$ENDIF}
 end;
-
+{$ENDIF}
 function TryStringToInt64PB(const BufP: Pointer; const BufLen: Integer; out Value: Int64; out StrLen: Integer): TConvertResult;
 var Len : Integer;
     DigVal : Integer;
@@ -5040,6 +5042,7 @@ begin
       Result := False;
 end;
 
+{$IFNDEF DELPHI7}
 {$IFDEF SupportAnsiString}
 function TryStringToUInt64A(const S: AnsiString; out A: UInt64): Boolean;
 var L, N : Integer;
@@ -5185,6 +5188,7 @@ begin
   if not TryStringToUInt64(S, Result) then
     raise ERangeCheckError.Create;
 end;
+{$ENDIF ~DELPHI7}
 
 {$IFDEF SupportAnsiString}
 function TryStringToIntA(const S: AnsiString; out A: Integer): Boolean;
@@ -5583,7 +5587,7 @@ begin
     else
       C := AsciiHexLookup[Ord(D)];
     {$ELSE}
-    C := HexLookup[Ord(D)];
+    C := AsciiHexLookup[Ord(D)];
     {$ENDIF}
     if C > M then // invalid digit
       begin
