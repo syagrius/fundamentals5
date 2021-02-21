@@ -1,11 +1,11 @@
 {******************************************************************************}
 {                                                                              }
 {   Library:          Fundamentals 5.00                                        }
-{   File name:        flcCipherUtils.pas                                       }
-{   File version:     5.03                                                     }
-{   Description:      Cipher library                                           }
+{   File name:        flcCryptoUtils.pas                                       }
+{   File version:     5.01                                                     }
+{   Description:      Crypto utils                                             }
 {                                                                              }
-{   Copyright:        Copyright (c) 2007-2020, David J Butler                  }
+{   Copyright:        Copyright (c) 2008-2021, David J Butler                  }
 {                     All rights reserved.                                     }
 {                     This file is licensed under the BSD License.             }
 {                     See http://www.opensource.org/licenses/bsd-license.php   }
@@ -36,92 +36,65 @@
 {                                                                              }
 { Revision history:                                                            }
 {                                                                              }
-{   2007/01/05  4.01  Initial version                                          }
-{   2016/01/09  5.02  Revised for Fundamentals 5.                              }
-{   2020/07/07  5.03  NativeInt and String type changes.                       }
+{   2020/12/29  5.01  Create flcCryptoUtils from Cipher units.                 }
 {                                                                              }
 {******************************************************************************}
 
-{$INCLUDE flcCipher.inc}
+{$INCLUDE ..\flcInclude.inc}
+{$INCLUDE flcCrypto.inc}
 
-unit flcCipherUtils;
+unit flcCryptoUtils;
 
 interface
 
 uses
-  { System }
   SysUtils,
 
-  { Fundamentals }
   flcStdTypes;
 
 
 
 {                                                                              }
-{ Cipher errors                                                                }
+{ Secure memory clear                                                          }
+{   Used to clear keys and other sensitive data from memory.                   }
+{   Memory is overwritten with zeros before releasing reference.               }
 {                                                                              }
-const
-  CipherError_InvalidCipher     = 1;
-  CipherError_InvalidKeySize    = 2;
-  CipherError_InvalidKeyBits    = 3;
-  CipherError_InvalidCipherMode = 4;
-  CipherError_InvalidBufferSize = 5;
-  CipherError_InvalidBuffer     = 6;
-  CipherError_InvalidData       = 7;
-
-type
-  ECipher = class(Exception)
-  protected
-    FErrorCode : Integer;
-  public
-    constructor Create(const ErrorCode: Integer; const Msg: String);
-    property ErrorCode: Integer read FErrorCode;
-  end;
-
-
-
-{                                                                              }
-{ Secure clear                                                                 }
-{                                                                              }
-procedure SecureClearBuf(var Buffer; const BufferSize: NativeInt);
+procedure SecureClearBuf(var Buf; const BufSize: NativeInt);
 procedure SecureClearBytes(var B: TBytes);
 procedure SecureClearStrB(var S: RawByteString);
 procedure SecureClearStrU(var S: UnicodeString);
-procedure SecureClearStr(var S: String); inline;
+procedure SecureClearStr(var S: String);
 
 
 
 implementation
 
+{$IFNDEF SupportStringRefCount}
+uses
+  flcUtils;
+{$ENDIF}
+
 
 
 {                                                                              }
-{ Cipher errors                                                                }
+{ Secure memory clear                                                          }
 {                                                                              }
-constructor ECipher.Create(const ErrorCode: Integer; const Msg: String);
+procedure SecureClearBuf(var Buf; const BufSize: NativeInt);
 begin
-  FErrorCode := ErrorCode;
-  inherited Create(Msg);
-end;
-
-
-
-{                                                                              }
-{ Secure clear helper function                                                 }
-{   Clears a piece of memory before it is released to help prevent             }
-{   sensitive information from being exposed.                                  }
-{                                                                              }
-procedure SecureClearBuf(var Buffer; const BufferSize: NativeInt);
-begin
-  if BufferSize <= 0 then
+  if BufSize <= 0 then
     exit;
-  FillChar(Buffer, BufferSize, $00);
+  FillChar(Buf, BufSize, #$00);
 end;
 
 procedure SecureClearBytes(var B: TBytes);
+var
+  L : NativeInt;
 begin
-  SecureClearBuf(Pointer(B)^, Length(B));
-  B := nil;
+  L := Length(B);
+  if L = 0 then
+    exit;
+  SecureClearBuf(Pointer(B)^, L);
+  SetLength(B, 0);
 end;
 
 procedure SecureClearStrB(var S: RawByteString);
@@ -132,7 +105,7 @@ begin
   if L = 0 then
     exit;
   if StringRefCount(S) > 0 then
-    SecureClearBuf(Pointer(S)^, L);
+    SecureClearBuf(PByteChar(S)^, L);
   SetLength(S, 0);
 end;
 
@@ -144,17 +117,20 @@ begin
   if L = 0 then
     exit;
   if StringRefCount(S) > 0 then
-    SecureClearBuf(Pointer(S)^, L * SizeOf(WideChar));
-  SetLength(S, 0);
+    SecureClearBuf(PWideChar(S)^, L * SizeOf(WideChar));
+  S := '';
 end;
 
 procedure SecureClearStr(var S: String);
+var
+  L : NativeInt;
 begin
-  {$IFDEF StringIsUnicode}
-  SecureClearStrU(S);
-  {$ELSE}
-  SecureClearStrB(S);
-  {$ENDIF}
+  L := Length(S);
+  if L = 0 then
+    exit;
+  if StringRefCount(S) > 0 then
+    SecureClearBuf(PChar(S)^, L * SizeOf(Char));
+  S := '';
 end;
 
 

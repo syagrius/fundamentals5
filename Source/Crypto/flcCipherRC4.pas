@@ -5,7 +5,7 @@
 {   File version:     5.06                                                     }
 {   Description:      RC4 cipher routines                                      }
 {                                                                              }
-{   Copyright:        Copyright (c) 2007-2020, David J Butler                  }
+{   Copyright:        Copyright (c) 2007-2021, David J Butler                  }
 {                     All rights reserved.                                     }
 {                     This file is licensed under the BSD License.             }
 {                     See http://www.opensource.org/licenses/bsd-license.php   }
@@ -45,13 +45,17 @@
 {                                                                              }
 {******************************************************************************}
 
-{$INCLUDE flcCipher.inc}
+{$INCLUDE ..\flcInclude.inc}
+{$INCLUDE flcCrypto.inc}
 
 unit flcCipherRC4;
 
 interface
 
+uses
+  flcStdTypes;
 
+  
 
 {                                                                              }
 { RC4                                                                          }
