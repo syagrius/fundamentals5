@@ -200,7 +200,6 @@ uses
   flcUtils;
 
 
-
 {                                                                              }
 { A note on the class naming convention used in this unit:                     }
 {                                                                              }
