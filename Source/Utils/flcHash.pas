@@ -133,6 +133,8 @@ interface
 uses
   { System }
   SysUtils,
+  { for stream }
+  Classes,
 
   { Fundamentals }
   flcStdTypes;
@@ -659,6 +661,7 @@ type
     procedure HashBuf(const Buf; const BufSize: NativeInt; const FinalBuf: Boolean);
     procedure HashFile(const FileName: String; const Offset: Int64 = 0;
               const MaxCount: Int64 = -1);
+    procedure HashStream(Stm: TStream; const Offset : Int64 = 0 ; const MaxCount : Int64 = -1 );
   end;
   THashClass = class of AHash;
 
@@ -4520,6 +4523,82 @@ end;
 function GetDigestSize(const HashType: THashType): Integer;
 begin
   Result := GetHashClassByType(HashType).DigestSize;
+end;
+
+// Hash a strema without using tempory file
+Procedure AHash.HashStream(Stm: TStream; const Offset : Int64 = 0 ; const MaxCount : Int64 = -1 ); // acia
+const ChunkSize = 8192;
+var Buf    : Pointer;
+    I, C   : Integer;
+    Left   : Int64;
+    Fin    : Boolean;
+  Begin
+    if Offset > 0 then
+      I := Stm.Seek(Offset, 0) else
+    if Offset < 0 then
+      I := Stm.Seek(Offset, 2) else
+      I := 0;
+    if I = -1 then
+      raise EHashError.Create (hashFileSeekError);
+    try
+      GetMem (Buf, ChunkSize);
+      try
+        if MaxCount < 0 then
+          Left := High (Int64) else
+          Left := MaxCount;
+        Repeat
+          if Left > ChunkSize then
+            C := ChunkSize else
+            C := Left;
+          if C = 0 then
+            begin
+              I := 0;
+              Fin := True;
+            end else
+            begin
+              I :=  Stm.Read(Buf^,C);
+              if I = -1 then
+                raise EHashError.Create (hashFileReadError);
+              Dec (Left, I);
+              Fin := (I < C) or (Left <= 0);
+            end;
+          HashBuf (Buf^, I, Fin);
+        Until Fin;
+      finally
+        FreeMem (Buf, ChunkSize);
+      end;
+    finally
+    end;
+  End;
+
+
+// Extracted code from the forum
+// http://sourceforge.net/forum/forum.php?thread_id=1799104&forum_id=2117
+procedure MemoryNot(P: Pointer; Bytes: Byte);
+var
+  I: Byte;
+begin
+  for I:=1 to Bytes do
+  begin
+    Byte(P^) := not Byte(P^);
+    P := Pointer(LongWord(P)+1);
+  end;
+end;
+
+procedure MemoryReverse(P: Pointer; Bytes: Byte);
+var
+  B, I: Byte;
+  P2:   Pointer;
+begin
+  P2 := Pointer(LongWord(P)+Bytes-1);
+  for I:=1 to Bytes div 2 do
+  begin
+    B := Byte(P^);
+    Byte(P^) := Byte(P2^);
+    Byte(P2^) := B;
+    P := Pointer(LongWord(P)+1);
+    P2 := Pointer(LongWord(P2)-1);
+  end;
 end;
 
 
